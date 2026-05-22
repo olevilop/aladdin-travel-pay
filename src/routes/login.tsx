@@ -45,7 +45,7 @@ function LoginPage() {
             A
           </div>
           <CardTitle className="text-xl">Alladin Travel Club</CardTitle>
-          <p className="text-sm text-muted-foreground">Счета на оплату — вход</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-line">{"\n"}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
