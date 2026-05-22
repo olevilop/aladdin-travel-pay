@@ -147,9 +147,15 @@ export function FileBlock({
               {fileIcon(f.name)}
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">
+                  <button
+                    type="button"
+                    onClick={() => onDownload(f)}
+                    disabled={busyId === f.id}
+                    title="Скачать"
+                    className="truncate text-left text-sm font-medium text-foreground hover:text-primary hover:underline cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
                     {f.name}
-                  </p>
+                  </button>
                   {f.is_paid && (
                     <Badge className="border-transparent bg-green-100 text-green-700">
                       Оплачено
