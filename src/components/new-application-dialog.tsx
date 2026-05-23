@@ -33,7 +33,7 @@ export function NewApplicationDialog() {
     setLoading(true);
     try {
       const app = await api.createApplication(title.trim(), description.trim());
-      toast.success(`Создана заявка ${app.number}`);
+      toast.success(`Создана заявка от ${app.number}`);
       setOpen(false);
       setTitle("");
       setDescription("");
