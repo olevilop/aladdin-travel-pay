@@ -28,8 +28,8 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 border-b bg-background">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <Link to="/applications" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-            D
+          <div className="flex h-7 px-1.5 items-center justify-center rounded-md bg-primary text-primary-foreground text-[10px] font-bold">
+            Alladin
           </div>
           <span className="font-semibold text-foreground">Счета на оплату</span>
         </Link>
