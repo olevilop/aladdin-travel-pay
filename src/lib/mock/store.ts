@@ -123,7 +123,7 @@ function seed(): MockDB {
     },
     {
       id: uid(),
-      number: "2026-0003",
+      number: "18.05.2026",
       title: "Индивидуальный тур, Мальдивы",
       description: "",
       created_at: "2026-05-18T09:30:00.000Z",
