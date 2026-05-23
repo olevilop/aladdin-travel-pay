@@ -163,9 +163,6 @@ export function findFile(id: string): { app: Application; file: InvoiceFile } | 
   return undefined;
 }
 
-export function newAppNumber() {
-  return nextApplicationNumber(db.applications.map((a) => a.number));
-}
 
 export function mockCurrentUser(): User {
   return adminUser;
