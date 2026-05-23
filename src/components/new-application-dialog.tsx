@@ -56,7 +56,7 @@ export function NewApplicationDialog() {
         <DialogHeader>
           <DialogTitle>Новая заявка</DialogTitle>
           <DialogDescription>
-            Номер сгенерируется автоматически в формате 2026-0001.
+            Дата создания подставится автоматически.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
