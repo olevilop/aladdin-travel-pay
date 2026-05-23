@@ -129,7 +129,7 @@ export async function createApplication(
     const me = mockCurrentUser();
     const app: Application = {
       id: uid(),
-      number: newAppNumber(),
+      number: formatDate(nowISO()),
       title,
       description,
       created_at: nowISO(),
