@@ -117,7 +117,7 @@ function Detail() {
 
       <div className="mt-4 flex flex-col gap-4 rounded-lg border bg-card p-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="text-xs font-medium text-muted-foreground">№ {app.number}</div>
+          <div className="text-xs font-medium text-muted-foreground">Создано: {app.number}</div>
           <h1 className="mt-1 text-2xl font-semibold text-foreground">{app.title}</h1>
           {app.description && (
             <p className="mt-2 text-sm text-muted-foreground">{app.description}</p>
