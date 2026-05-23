@@ -1,5 +1,4 @@
 import type { Application, InvoiceFile, User, CompanyType, Role } from "@/types";
-import { nextApplicationNumber } from "@/lib/format";
 
 // In-memory file storage. Maps fileId -> File (with Blob).
 const fileBlobStore = new Map<string, File>();
