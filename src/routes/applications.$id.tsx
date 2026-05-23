@@ -134,7 +134,7 @@ function Detail() {
           </Button>
           <ConfirmDialog
             title="Удалить заявку?"
-            description={`Заявка № ${app.number} и все её файлы будут удалены безвозвратно.`}
+            description={`Заявка от ${app.number} и все её файлы будут удалены безвозвратно.`}
             onConfirm={onDeleteApp}
             trigger={
               <Button variant="outline" className="text-destructive">
