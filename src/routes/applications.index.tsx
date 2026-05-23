@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { NewApplicationDialog } from "@/components/new-application-dialog";
 import * as api from "@/lib/api";
 import type { Application } from "@/types";
-import { formatDate } from "@/lib/format";
+
 import { FileText, Loader2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/applications/")({
