@@ -12,13 +12,3 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
 }
 
-export function nextApplicationNumber(existing: string[]): string {
-  const year = new Date().getFullYear();
-  const yearPrefix = `${year}-`;
-  const used = existing
-    .filter((n) => n.startsWith(yearPrefix))
-    .map((n) => parseInt(n.slice(yearPrefix.length), 10))
-    .filter((n) => !isNaN(n));
-  const next = (used.length ? Math.max(...used) : 0) + 1;
-  return `${year}-${String(next).padStart(4, "0")}`;
-}
