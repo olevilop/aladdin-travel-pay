@@ -43,7 +43,7 @@ function seed(): MockDB {
   const apps: Application[] = [
     {
       id: uid(),
-      number: "2026-0001",
+      number: "01.05.2026",
       title: "Тур в Турцию, семья Соколовых",
       description: "Anex Tour, вылет 12.06.2026, 4 ночи",
       created_at: "2026-05-01T10:00:00.000Z",
