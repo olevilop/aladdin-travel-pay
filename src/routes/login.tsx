@@ -41,8 +41,8 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">
-            D
+          <div className="mx-auto flex h-12 px-3 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">
+            Alladin
           </div>
           <CardTitle className="text-xl">Docs</CardTitle>
           <p className="text-sm text-muted-foreground whitespace-pre-line">{"\n"}</p>
