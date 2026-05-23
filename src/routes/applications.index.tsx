@@ -83,16 +83,15 @@ function List() {
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-xs font-medium text-muted-foreground">
-                        № {app.number}
+                        {app.number}
                       </span>
                       <StatusBadge app={app} />
                     </div>
                     <h3 className="mt-2 line-clamp-2 font-semibold text-foreground">
                       {app.title}
                     </h3>
-                    <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{app.files.length} файлов</span>
-                      <span>{formatDate(app.created_at)}</span>
+                    <div className="mt-4 text-xs text-muted-foreground">
+                      {app.files.length} файлов
                     </div>
                   </CardContent>
                 </Card>
