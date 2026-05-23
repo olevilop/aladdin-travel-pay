@@ -77,7 +77,7 @@ function seed(): MockDB {
     },
     {
       id: uid(),
-      number: "2026-0002",
+      number: "10.05.2026",
       title: "Корпоративная поездка в Дубай",
       description: "Группа 8 человек, отель Atlantis",
       created_at: "2026-05-10T14:00:00.000Z",
