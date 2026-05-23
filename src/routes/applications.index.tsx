@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { NewApplicationDialog } from "@/components/new-application-dialog";
 import * as api from "@/lib/api";
 import type { Application } from "@/types";
-import { formatDate } from "@/lib/format";
+
 import { FileText, Loader2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/applications/")({
@@ -83,16 +83,15 @@ function List() {
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-xs font-medium text-muted-foreground">
-                        № {app.number}
+                        {app.number}
                       </span>
                       <StatusBadge app={app} />
                     </div>
                     <h3 className="mt-2 line-clamp-2 font-semibold text-foreground">
                       {app.title}
                     </h3>
-                    <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{app.files.length} файлов</span>
-                      <span>{formatDate(app.created_at)}</span>
+                    <div className="mt-4 text-xs text-muted-foreground">
+                      {app.files.length} файлов
                     </div>
                   </CardContent>
                 </Card>

@@ -12,10 +12,10 @@ import {
   findFile,
   mockCurrentUser,
   mockFiles,
-  newAppNumber,
   nowISO,
   uid,
 } from "@/lib/mock/store";
+import { formatDate } from "@/lib/format";
 
 /**
  * API_URL — пустая строка = мок-режим (in-memory).
@@ -129,7 +129,7 @@ export async function createApplication(
     const me = mockCurrentUser();
     const app: Application = {
       id: uid(),
-      number: newAppNumber(),
+      number: formatDate(nowISO()),
       title,
       description,
       created_at: nowISO(),

@@ -1,5 +1,4 @@
 import type { Application, InvoiceFile, User, CompanyType, Role } from "@/types";
-import { nextApplicationNumber } from "@/lib/format";
 
 // In-memory file storage. Maps fileId -> File (with Blob).
 const fileBlobStore = new Map<string, File>();
@@ -43,7 +42,7 @@ function seed(): MockDB {
   const apps: Application[] = [
     {
       id: uid(),
-      number: "2026-0001",
+      number: "01.05.2026",
       title: "Тур в Турцию, семья Соколовых",
       description: "Anex Tour, вылет 12.06.2026, 4 ночи",
       created_at: "2026-05-01T10:00:00.000Z",
@@ -77,7 +76,7 @@ function seed(): MockDB {
     },
     {
       id: uid(),
-      number: "2026-0002",
+      number: "10.05.2026",
       title: "Корпоративная поездка в Дубай",
       description: "Группа 8 человек, отель Atlantis",
       created_at: "2026-05-10T14:00:00.000Z",
@@ -123,7 +122,7 @@ function seed(): MockDB {
     },
     {
       id: uid(),
-      number: "2026-0003",
+      number: "18.05.2026",
       title: "Индивидуальный тур, Мальдивы",
       description: "",
       created_at: "2026-05-18T09:30:00.000Z",
@@ -164,9 +163,6 @@ export function findFile(id: string): { app: Application; file: InvoiceFile } | 
   return undefined;
 }
 
-export function newAppNumber() {
-  return nextApplicationNumber(db.applications.map((a) => a.number));
-}
 
 export function mockCurrentUser(): User {
   return adminUser;
