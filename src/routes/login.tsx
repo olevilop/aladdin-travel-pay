@@ -44,7 +44,7 @@ function LoginPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">
             A
           </div>
-          <CardTitle className="text-xl">Alladin Travel Club</CardTitle>
+          <CardTitle className="text-xl">Docs</CardTitle>
           <p className="text-sm text-muted-foreground whitespace-pre-line">{"\n"}</p>
         </CardHeader>
         <CardContent>
