@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -214,7 +215,7 @@ function NewUserDialog({ onCreated }: { onCreated: () => void }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="np">Временный пароль</Label>
-            <Input
+            <PasswordInput
               id="np"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

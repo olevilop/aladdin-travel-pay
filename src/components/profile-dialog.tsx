@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -94,9 +95,8 @@ export function ProfileDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="email-password">Текущий пароль</Label>
-            <Input
+            <PasswordInput
               id="email-password"
-              type="password"
               value={emailPassword}
               onChange={(e) => setEmailPassword(e.target.value)}
               required
@@ -112,9 +112,8 @@ export function ProfileDialog({
           <h3 className="text-sm font-medium text-foreground">Сменить пароль</h3>
           <div className="space-y-2">
             <Label htmlFor="current-password">Текущий пароль</Label>
-            <Input
+            <PasswordInput
               id="current-password"
-              type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
@@ -122,9 +121,8 @@ export function ProfileDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="np">Новый пароль</Label>
-            <Input
+            <PasswordInput
               id="np"
-              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -132,9 +130,8 @@ export function ProfileDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="cp">Повторите новый пароль</Label>
-            <Input
+            <PasswordInput
               id="cp"
-              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
