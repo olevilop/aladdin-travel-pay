@@ -72,6 +72,7 @@ else
   log "Создаю пользователя БД, базу и backend/.env"
   DB_PASS="$(openssl rand -hex 16)"
   JWT_SECRET="$(openssl rand -hex 32)"
+  BOT_API_TOKEN="$(openssl rand -hex 32)"
   ADMIN_EMAIL="${ADMIN_EMAIL:-admin@alladin.club}"
   if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
     ADMIN_PASSWORD="$(openssl rand -hex 8)"
@@ -98,6 +99,7 @@ MAX_UPLOAD_MB=25
 ADMIN_EMAIL=$ADMIN_EMAIL
 ADMIN_PASSWORD=$ADMIN_PASSWORD
 ADMIN_NAME=Администратор
+BOT_API_TOKEN=$BOT_API_TOKEN
 EOF
 fi
 

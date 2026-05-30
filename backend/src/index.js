@@ -7,6 +7,7 @@ import { authRouter } from "./routes/auth.js";
 import { applicationsRouter } from "./routes/applications.js";
 import { filesRouter } from "./routes/files.js";
 import { usersRouter } from "./routes/users.js";
+import { botRouter } from "./routes/bot.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -26,6 +27,7 @@ app.use("/auth", authRouter);
 app.use("/applications", applicationsRouter);
 app.use("/files", filesRouter);
 app.use("/users", usersRouter);
+app.use("/bot", botRouter);
 
 app.use((_req, res) => res.status(404).json({ message: "Не найдено" }));
 

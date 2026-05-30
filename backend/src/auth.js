@@ -46,3 +46,14 @@ export function requireAdmin(req, res, next) {
   }
   next();
 }
+
+// Аутентификация для сервисного клиента (Telegram-бот / агент).
+// Бот шлёт заголовок X-Bot-Token со значением BOT_API_TOKEN из .env.
+export function botAuth(req, res, next) {
+  const token = req.headers["x-bot-token"];
+  const expected = process.env.BOT_API_TOKEN;
+  if (!expected || token !== expected) {
+    return res.status(401).json({ message: "Недействительный токен бота" });
+  }
+  next();
+}
