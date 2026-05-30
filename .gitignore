@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# Локальные переменные окружения (создаются на сервере)
+.env
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

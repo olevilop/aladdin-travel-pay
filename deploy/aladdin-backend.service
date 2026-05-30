@@ -1,0 +1,26 @@
+# systemd-юнит для REST API (Express + PostgreSQL).
+# Устанавливается скриптом deploy/setup-server.sh в /etc/systemd/system/.
+# Слушает только localhost (127.0.0.1:3001); наружу проксирует Nginx по пути /api.
+
+[Unit]
+Description=Aladdin Travel Pay API (Express + PostgreSQL)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=aladdin
+Group=aladdin
+WorkingDirectory=/var/www/aladdin-travel-pay/backend
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=3
+# Базовое усиление безопасности
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/aladdin-travel-pay/backend/uploads
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

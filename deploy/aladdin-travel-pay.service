@@ -1,0 +1,28 @@
+# systemd-юнит для SSR-сервера (TanStack Start, Node).
+# Устанавливается скриптом deploy/setup-server.sh в /etc/systemd/system/.
+# Сервер слушает только localhost (127.0.0.1) — наружу его проксирует Nginx.
+
+[Unit]
+Description=Aladdin Travel Pay (TanStack Start SSR)
+After=network.target
+
+[Service]
+Type=simple
+User=aladdin
+Group=aladdin
+WorkingDirectory=/var/www/aladdin-travel-pay
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/bin/node dist/server/index.mjs
+Restart=always
+RestartSec=3
+# Базовое усиление безопасности
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/aladdin-travel-pay
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

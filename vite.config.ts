@@ -12,4 +12,7 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // Build a self-contained Node.js server (dist/server/index.mjs) for the Timeweb VPS.
+  // Override at build time with NITRO_PRESET if deploying elsewhere.
+  nitro: { preset: process.env.NITRO_PRESET ?? "node-server" },
 });
