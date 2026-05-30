@@ -102,6 +102,34 @@ export async function getCurrentUser(): Promise<User> {
   return request<User>("/auth/me");
 }
 
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (!API_URL) {
+    await delay();
+    return;
+  }
+  await request("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+}
+
+export async function changeEmail(
+  currentPassword: string,
+  newEmail: string,
+): Promise<User> {
+  if (!API_URL) {
+    await delay();
+    return { ...mockCurrentUser(), email: newEmail };
+  }
+  return request<User>("/auth/change-email", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword, new_email: newEmail }),
+  });
+}
+
 // ─── APPLICATIONS ─────────────────────────────────────────────────────────
 export async function listApplications(query?: string): Promise<Application[]> {
   if (!API_URL) {

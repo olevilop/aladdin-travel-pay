@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { LogOut, Shield, User as UserIcon } from "lucide-react";
+import { LogOut, Settings, Shield, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ProfileDialog } from "@/components/profile-dialog";
 import { useAuth, logoutUser } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -16,6 +18,7 @@ export function AppHeader() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   async function onLogout() {
     await logoutUser();
@@ -48,6 +51,9 @@ export function AppHeader() {
                   <div className="text-xs text-muted-foreground">{user.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+                  <Settings className="mr-2 h-4 w-4" /> Профиль
+                </DropdownMenuItem>
                 {user.role === "admin" && (
                   <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
                     <Shield className="mr-2 h-4 w-4" /> Админ-панель
@@ -61,6 +67,7 @@ export function AppHeader() {
           )}
         </div>
       </div>
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </header>
   );
 }

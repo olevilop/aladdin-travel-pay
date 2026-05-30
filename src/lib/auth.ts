@@ -51,6 +51,11 @@ export function useAuth() {
   return s;
 }
 
+// Обновить данные текущего пользователя в состоянии (например, после смены email).
+export function applyUser(user: User) {
+  setState({ user, loading: false });
+}
+
 export async function loginUser(email: string, password: string) {
   const { user } = await api.login(email, password);
   setState({ user, loading: false });
