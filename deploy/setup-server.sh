@@ -56,6 +56,8 @@ id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /usr
 
 log "Клонирую/обновляю репозиторий в $APP_DIR"
 mkdir -p "$APP_DIR"
+# git помечает папку как "dubious ownership", если она принадлежит не root.
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 if [[ -d "$APP_DIR/.git" ]]; then
   git -C "$APP_DIR" fetch --all
   git -C "$APP_DIR" reset --hard origin/HEAD

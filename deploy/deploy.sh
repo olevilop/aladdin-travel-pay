@@ -19,6 +19,10 @@ run_user() { sudo -u "$APP_USER" -H "$@"; }
 
 cd "$APP_DIR"
 
+# git ругается на "dubious ownership", когда папка принадлежит $APP_USER, а git
+# запускается от root. Помечаем папку доверенной (идемпотентно).
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+
 log "Подтягиваю свежий код из GitHub"
 git fetch --all
 git reset --hard origin/HEAD
