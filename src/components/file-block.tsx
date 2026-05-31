@@ -43,6 +43,25 @@ async function downloadAndSave(fileId: string, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// Открыть файл для просмотра в новой вкладке (без сохранения в «Загрузки»).
+// PDF и изображения откроются прямо в браузере; офисные форматы браузер
+// показать не умеет — для них останется кнопка «Скачать».
+// Вкладку открываем СРАЗУ при клике (иначе блокировщик всплывающих окон её
+// отменит, т.к. после await это уже вне «жеста пользователя»), а содержимое
+// подставляем после загрузки.
+async function openForView(fileId: string) {
+  const win = window.open("", "_blank");
+  const blob = await api.downloadFile(fileId);
+  const url = URL.createObjectURL(blob);
+  if (win) {
+    win.location.href = url;
+  } else {
+    // Если окно всё-таки заблокировано — откроем как сможем.
+    window.open(url, "_blank");
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 export function FileBlock({
   title,
   companyType,
@@ -119,6 +138,17 @@ export function FileBlock({
     }
   }
 
+  async function onView(f: InvoiceFile) {
+    setBusyId(f.id);
+    try {
+      await openForView(f.id);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div
       className="rounded-lg border bg-card"
@@ -149,9 +179,9 @@ export function FileBlock({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => onDownload(f)}
+                    onClick={() => onView(f)}
                     disabled={busyId === f.id}
-                    title="Скачать"
+                    title="Открыть для просмотра"
                     className="truncate text-left text-sm font-medium text-foreground hover:text-primary hover:underline cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {f.name}

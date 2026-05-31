@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { query } from "../db.js";
-import { authMiddleware } from "../auth.js";
+import { authMiddleware, requireAdmin } from "../auth.js";
 import { upload, decodeOriginalName } from "../upload.js";
 import { formatAppNumber, mapApplication, mapFile, safeUnlink } from "../util.js";
 
@@ -73,8 +73,8 @@ applicationsRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-// DELETE /applications/:id
-applicationsRouter.delete("/:id", async (req, res, next) => {
+// DELETE /applications/:id — удалять заявку может только администратор
+applicationsRouter.delete("/:id", requireAdmin, async (req, res, next) => {
   try {
     const filesRes = await query(
       "SELECT storage_path FROM files WHERE application_id::text = $1",

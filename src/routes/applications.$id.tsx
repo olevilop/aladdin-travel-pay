@@ -9,6 +9,7 @@ import { FileBlock } from "@/components/file-block";
 import * as api from "@/lib/api";
 import type { Application } from "@/types";
 import { formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 import { ArrowLeft, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +34,8 @@ function DetailPage() {
 function Detail() {
   const { id } = useParams({ from: "/applications/$id" });
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [app, setApp] = useState<Application | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [zipping, setZipping] = useState(false);
@@ -135,16 +138,18 @@ function Detail() {
             )}
             Скачать всё ZIP
           </Button>
-          <ConfirmDialog
-            title="Удалить заявку?"
-            description={`Заявка от ${app.number} и все её файлы будут удалены безвозвратно.`}
-            onConfirm={onDeleteApp}
-            trigger={
-              <Button variant="outline" className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> Удалить заявку
-              </Button>
-            }
-          />
+          {isAdmin && (
+            <ConfirmDialog
+              title="Удалить заявку?"
+              description={`Заявка N ${app.number} и все её файлы будут удалены безвозвратно.`}
+              onConfirm={onDeleteApp}
+              trigger={
+                <Button variant="outline" className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" /> Удалить заявку
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 
