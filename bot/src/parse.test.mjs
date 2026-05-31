@@ -14,12 +14,24 @@ function check(name, fn) {
   }
 }
 
-check("№ + РФ", () => {
-  const r = parseMessage("№123 РФ");
+check("N + РФ (латинская N без пробела)", () => {
+  const r = parseMessage("N123 РФ");
   assert.equal(r.number, "123");
   assert.equal(r.companyType, "ru");
   assert.equal(r.isPaid, false);
   assert.equal(r.errors.length, 0);
+});
+
+check("N с пробелом", () => {
+  const r = parseMessage("N 7010 зарубежная");
+  assert.equal(r.number, "7010");
+  assert.equal(r.companyType, "foreign");
+});
+
+check("№ всё ещё работает", () => {
+  const r = parseMessage("№123 РФ");
+  assert.equal(r.number, "123");
+  assert.equal(r.companyType, "ru");
 });
 
 check("заявка с буквенно-цифровым номером + зарубежная + оплачено", () => {
@@ -30,7 +42,7 @@ check("заявка с буквенно-цифровым номером + зар
   assert.equal(r.errors.length, 0);
 });
 
-check("no 777 россия", () => {
+check("no 777 россия (латинское no не путается с N)", () => {
   const r = parseMessage("no 777 россия");
   assert.equal(r.number, "777");
   assert.equal(r.companyType, "ru");
@@ -55,13 +67,14 @@ check("нет номера — ошибка", () => {
 });
 
 check("нет раздела — ошибка", () => {
-  const r = parseMessage("№50 оплата прошла");
+  const r = parseMessage("N50 оплата прошла");
+  assert.equal(r.number, "50");
   assert.equal(r.companyType, null);
   assert.ok(r.errors.some((e) => e.includes("раздел")));
 });
 
 check("оба раздела — неоднозначно", () => {
-  const r = parseMessage("№50 РФ и зарубежная");
+  const r = parseMessage("N50 РФ и зарубежная");
   assert.equal(r.companyType, null);
   assert.ok(r.errors.some((e) => e.includes("одно")));
 });

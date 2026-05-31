@@ -113,13 +113,13 @@ function Detail() {
           <ArrowLeft className="h-3.5 w-3.5" /> Заявки
         </Link>
         <span>→</span>
-        <span className="text-foreground">№ {app.number}</span>
+        <span className="text-foreground">N {app.number}</span>
       </nav>
 
       <div className="mt-4 flex flex-col gap-4 rounded-lg border bg-card p-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="text-xs font-medium text-muted-foreground">
-            № {app.number} · создано {formatDate(app.created_at)}
+            N {app.number} · создано {formatDate(app.created_at)}
           </div>
           <h1 className="mt-1 text-2xl font-semibold text-foreground">{app.title}</h1>
           {app.description && (

@@ -83,7 +83,7 @@ function List() {
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-xs font-medium text-muted-foreground">
-                        {app.number}
+                        N {app.number}
                       </span>
                       <StatusBadge app={app} />
                     </div>
