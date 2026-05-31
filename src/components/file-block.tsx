@@ -31,6 +31,21 @@ function fileIcon(name: string) {
   return <FileIcon className="h-5 w-5 text-muted-foreground" />;
 }
 
+// MIME-тип по расширению имени файла. Нужен потому, что файлы, загруженные через
+// Telegram-бота, часто приходят как application/octet-stream — с таким типом
+// браузер не показывает файл, а скачивает. Поэтому тип определяем сами.
+function mimeByName(name: string): string {
+  const n = name.toLowerCase();
+  if (n.endsWith(".pdf")) return "application/pdf";
+  if (n.endsWith(".png")) return "image/png";
+  if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+  if (n.endsWith(".gif")) return "image/gif";
+  if (n.endsWith(".webp")) return "image/webp";
+  if (n.endsWith(".svg")) return "image/svg+xml";
+  if (n.endsWith(".txt")) return "text/plain";
+  return ""; // формат, который браузер показать не умеет (docx/xlsx и т.п.)
+}
+
 async function downloadAndSave(fileId: string, name: string) {
   const blob = await api.downloadFile(fileId);
   const url = URL.createObjectURL(blob);
@@ -44,19 +59,25 @@ async function downloadAndSave(fileId: string, name: string) {
 }
 
 // Открыть файл для просмотра в новой вкладке (без сохранения в «Загрузки»).
-// PDF и изображения откроются прямо в браузере; офисные форматы браузер
-// показать не умеет — для них останется кнопка «Скачать».
+// PDF, изображения и текст откроются прямо в браузере; форматы, которые браузер
+// показать не умеет (docx/xlsx), автоматически скачиваются.
 // Вкладку открываем СРАЗУ при клике (иначе блокировщик всплывающих окон её
-// отменит, т.к. после await это уже вне «жеста пользователя»), а содержимое
+// отменит — после await это уже вне «жеста пользователя»), а содержимое
 // подставляем после загрузки.
-async function openForView(fileId: string) {
+async function openForView(fileId: string, name: string) {
+  const type = mimeByName(name);
+  if (!type) {
+    await downloadAndSave(fileId, name);
+    return;
+  }
   const win = window.open("", "_blank");
-  const blob = await api.downloadFile(fileId);
+  const raw = await api.downloadFile(fileId);
+  // Пересобираем Blob с правильным типом — иначе браузер не покажет содержимое.
+  const blob = new Blob([raw], { type });
   const url = URL.createObjectURL(blob);
   if (win) {
     win.location.href = url;
   } else {
-    // Если окно всё-таки заблокировано — откроем как сможем.
     window.open(url, "_blank");
   }
   setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -127,10 +148,10 @@ export function FileBlock({
     }
   }
 
-  async function onDownload(f: InvoiceFile) {
+  async function onView(f: InvoiceFile) {
     setBusyId(f.id);
     try {
-      await downloadAndSave(f.id, f.name);
+      await openForView(f.id, f.name);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -138,10 +159,10 @@ export function FileBlock({
     }
   }
 
-  async function onView(f: InvoiceFile) {
+  async function onDownload(f: InvoiceFile) {
     setBusyId(f.id);
     try {
-      await openForView(f.id);
+      await downloadAndSave(f.id, f.name);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
