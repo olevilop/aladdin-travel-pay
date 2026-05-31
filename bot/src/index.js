@@ -11,6 +11,12 @@ const ALLOWED = (process.env.ALLOWED_USER_IDS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+// Разрешённые групповые чаты: список chat id через запятую (id группы — отрицательное число).
+// В этих чатах бот реагирует на файлы; всё равно грузит только от пользователей из ALLOWED.
+const ALLOWED_CHATS = (process.env.ALLOWED_CHAT_IDS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 if (!TG_TOKEN) {
   console.error("TELEGRAM_BOT_TOKEN не задан (см. bot/.env.example).");
@@ -102,33 +108,49 @@ const HELP =
 async function handleUpdate(update) {
   const msg = update.message;
   if (!msg) return;
-  const chatId = msg.chat.id;
+  const chatId = String(msg.chat.id);
   const userId = String(msg.from?.id ?? "");
-
-  // Whitelist по Telegram id
-  if (ALLOWED.length && !ALLOWED.includes(userId)) {
-    await sendMessage(
-      chatId,
-      `Доступ запрещён. Ваш Telegram id: ${userId}. Передайте его администратору для добавления.`,
-    );
-    return;
-  }
+  const isGroup = msg.chat.type === "group" || msg.chat.type === "supergroup";
 
   const text = msg.text || msg.caption || "";
 
-  // Команды
+  // Команды — работают везде. /id показывает id пользователя и (в группе) id чата.
   if (text.startsWith("/start") || text.startsWith("/help")) {
     await sendMessage(chatId, HELP);
     return;
   }
   if (text.startsWith("/id")) {
-    await sendMessage(chatId, `Ваш Telegram id: ${userId}`);
+    const lines = [`Ваш Telegram id: ${userId}`];
+    if (isGroup) lines.push(`Id этого чата: ${chatId}`);
+    await sendMessage(chatId, lines.join("\n"));
     return;
   }
 
   const file = extractFile(msg);
+
+  // Без файла: в личке подсказываем, в группе молчим (чтобы не спамить переписку).
   if (!file) {
-    await sendMessage(chatId, "Не вижу файла.\n\n" + HELP);
+    if (!isGroup) await sendMessage(chatId, "Не вижу файла.\n\n" + HELP);
+    return;
+  }
+
+  // Контроль доступа.
+  // В группе: чат должен быть в списке разрешённых И отправитель — в whitelist.
+  // В личке: отправитель должен быть в whitelist.
+  if (isGroup) {
+    if (ALLOWED_CHATS.length && !ALLOWED_CHATS.includes(chatId)) {
+      await sendMessage(
+        chatId,
+        `Этот чат не подключён к загрузке. Id чата: ${chatId}. Передайте его администратору.`,
+      );
+      return;
+    }
+  }
+  if (ALLOWED.length && !ALLOWED.includes(userId)) {
+    await sendMessage(
+      chatId,
+      `Доступ запрещён. Ваш Telegram id: ${userId}. Передайте его администратору для добавления.`,
+    );
     return;
   }
 
@@ -171,9 +193,9 @@ async function handleUpdate(update) {
 // ── Long polling ─────────────────────────────────────────────────────────────
 async function main() {
   console.log(
-    `Бот запущен. Backend: ${BACKEND_URL}. Разрешённых пользователей: ${
-      ALLOWED.length || "все (небезопасно)"
-    }.`,
+    `Бот запущен. Backend: ${BACKEND_URL}. ` +
+      `Разрешённых пользователей: ${ALLOWED.length || "все (небезопасно)"}. ` +
+      `Разрешённых чатов: ${ALLOWED_CHATS.length || "нет (только личка)"}.`,
   );
   let offset = 0;
   try {
