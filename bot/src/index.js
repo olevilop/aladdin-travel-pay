@@ -36,6 +36,10 @@ if (ALLOWED.length === 0) {
 const TG_API = `https://api.telegram.org/bot${TG_TOKEN}`;
 const TG_FILE = `https://api.telegram.org/file/bot${TG_TOKEN}`;
 
+// username бота (без @) — заполняется при старте через getMe.
+// Нужен, чтобы в группах реагировать только на явное упоминание @имя_бота.
+let BOT_USERNAME = "";
+
 // ── Helpers Telegram ─────────────────────────────────────────────────────────
 async function tg(method, payload) {
   const res = await fetch(`${TG_API}/${method}`, {
@@ -102,7 +106,9 @@ const HELP =
   "• номер заявки с префиксом № (например №7002 или заявка A-555)\n" +
   "• раздел — «РФ» или «зарубежная»\n" +
   "• при желании — «оплачено»\n\n" +
-  "Пример подписи: «№7002 зарубежная оплачено»";
+  "Пример подписи: «№7002 зарубежная оплачено»\n\n" +
+  "В групповом чате добавьте к подписи упоминание бота, например:\n" +
+  "«@имя_бота №7002 РФ»";
 
 // ── Обработка одного апдейта ─────────────────────────────────────────────────
 async function handleUpdate(update) {
@@ -128,9 +134,17 @@ async function handleUpdate(update) {
 
   const file = extractFile(msg);
 
-  // Без файла: в личке подсказываем, в группе молчим (чтобы не спамить переписку).
+  // В группе бот реагирует ТОЛЬКО на явное упоминание @имя_бота (privacy mode можно
+  // не выключать). Без упоминания — полностью молчим, чтобы не мешать переписке.
+  const mention = BOT_USERNAME ? `@${BOT_USERNAME}` : "";
+  const isMentioned = mention && text.toLowerCase().includes(mention.toLowerCase());
+  if (isGroup && !isMentioned) {
+    return;
+  }
+
+  // Без файла: в личке подсказываем; в группе (но с упоминанием) тоже подскажем.
   if (!file) {
-    if (!isGroup) await sendMessage(chatId, "Не вижу файла.\n\n" + HELP);
+    await sendMessage(chatId, "Не вижу файла.\n\n" + HELP);
     return;
   }
 
@@ -154,8 +168,13 @@ async function handleUpdate(update) {
     return;
   }
 
+  // Убираем упоминание @имя_бота из текста, чтобы оно не мешало разбору номера.
+  const cleanText = mention
+    ? text.replace(new RegExp(mention.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig"), " ").trim()
+    : text;
+
   // Разбор подписи
-  const { number, companyType, isPaid, errors } = parseMessage(text);
+  const { number, companyType, isPaid, errors } = parseMessage(cleanText);
   if (errors.length) {
     await sendMessage(chatId, "⚠️ " + errors.join("\n") + "\n\n" + HELP);
     return;
@@ -192,8 +211,15 @@ async function handleUpdate(update) {
 
 // ── Long polling ─────────────────────────────────────────────────────────────
 async function main() {
+  // Узнаём свой username — нужен для распознавания упоминаний в группах.
+  try {
+    const me = await tg("getMe", {});
+    BOT_USERNAME = me.username || "";
+  } catch (e) {
+    console.error("getMe:", e.message);
+  }
   console.log(
-    `Бот запущен. Backend: ${BACKEND_URL}. ` +
+    `Бот запущен (@${BOT_USERNAME || "?"}). Backend: ${BACKEND_URL}. ` +
       `Разрешённых пользователей: ${ALLOWED.length || "все (небезопасно)"}. ` +
       `Разрешённых чатов: ${ALLOWED_CHATS.length || "нет (только личка)"}.`,
   );
