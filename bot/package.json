@@ -1,0 +1,14 @@
+{
+  "name": "aladdin-travel-pay-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Telegram-бот для загрузки файлов в Aladdin Travel Pay",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node src/parse.test.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

@@ -1,0 +1,24 @@
+# systemd-юнит для Telegram-бота (загрузка файлов в заявки).
+# Устанавливается скриптом deploy/setup-bot.sh в /etc/systemd/system/.
+# Бот не слушает порт — он опрашивает Telegram (long polling) и ходит в backend.
+
+[Unit]
+Description=Aladdin Travel Pay Telegram bot
+After=network.target aladdin-backend.service
+Wants=aladdin-backend.service
+
+[Service]
+Type=simple
+User=aladdin
+Group=aladdin
+WorkingDirectory=/var/www/aladdin-travel-pay/bot
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
