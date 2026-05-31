@@ -19,6 +19,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 export function NewApplicationDialog() {
   const [open, setOpen] = useState(false);
+  const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,9 +33,10 @@ export function NewApplicationDialog() {
     }
     setLoading(true);
     try {
-      const app = await api.createApplication(title.trim(), description.trim());
-      toast.success(`Создана заявка от ${app.number}`);
+      const app = await api.createApplication(title.trim(), description.trim(), number.trim());
+      toast.success(`Создана заявка № ${app.number}`);
       setOpen(false);
+      setNumber("");
       setTitle("");
       setDescription("");
       navigate({ to: "/applications/$id", params: { id: app.id } });
@@ -56,10 +58,19 @@ export function NewApplicationDialog() {
         <DialogHeader>
           <DialogTitle>Новая заявка</DialogTitle>
           <DialogDescription>
-            Дата создания подставится автоматически.
+            Укажите номер заявки. Дата создания подставится автоматически.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="number">Номер заявки</Label>
+            <Input
+              id="number"
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+              placeholder="Например: 123 или A-555 (пусто — подставится дата)"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="title">Название *</Label>
             <Input

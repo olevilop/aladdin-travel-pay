@@ -41,13 +41,15 @@ applicationsRouter.get("/", async (req, res, next) => {
 // POST /applications
 applicationsRouter.post("/", async (req, res, next) => {
   try {
-    const { title, description } = req.body || {};
+    const { number, title, description } = req.body || {};
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Укажите название заявки" });
     }
+    // Номер задаёт пользователь; если не передан — берём сегодняшнюю дату как запасной вариант.
+    const appNumber = (number && String(number).trim()) || formatAppNumber();
     const { rows } = await query(
       "INSERT INTO applications (number, title, description, created_by) VALUES ($1, $2, $3, $4) RETURNING *",
-      [formatAppNumber(), title.trim(), (description || "").trim(), req.user.id],
+      [appNumber, title.trim(), (description || "").trim(), req.user.id],
     );
     res.status(201).json(mapApplication(rows[0], []));
   } catch (err) {

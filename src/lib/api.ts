@@ -151,13 +151,14 @@ export async function listApplications(query?: string): Promise<Application[]> {
 export async function createApplication(
   title: string,
   description: string,
+  number?: string,
 ): Promise<Application> {
   if (!API_URL) {
     await delay();
     const me = mockCurrentUser();
     const app: Application = {
       id: uid(),
-      number: formatDate(nowISO()),
+      number: (number && number.trim()) || formatDate(nowISO()),
       title,
       description,
       created_at: nowISO(),
@@ -169,7 +170,7 @@ export async function createApplication(
   }
   return request<Application>("/applications", {
     method: "POST",
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({ title, description, number }),
   });
 }
 

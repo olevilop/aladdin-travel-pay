@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { FileBlock } from "@/components/file-block";
 import * as api from "@/lib/api";
 import type { Application } from "@/types";
+import { formatDate } from "@/lib/format";
 import { ArrowLeft, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -112,12 +113,14 @@ function Detail() {
           <ArrowLeft className="h-3.5 w-3.5" /> Заявки
         </Link>
         <span>→</span>
-        <span className="text-foreground">{app.number}</span>
+        <span className="text-foreground">№ {app.number}</span>
       </nav>
 
       <div className="mt-4 flex flex-col gap-4 rounded-lg border bg-card p-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="text-xs font-medium text-muted-foreground">Создано: {app.number}</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            № {app.number} · создано {formatDate(app.created_at)}
+          </div>
           <h1 className="mt-1 text-2xl font-semibold text-foreground">{app.title}</h1>
           {app.description && (
             <p className="mt-2 text-sm text-muted-foreground">{app.description}</p>
