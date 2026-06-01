@@ -11,7 +11,21 @@ import { botRouter } from "./routes/bot.js";
 
 const app = express();
 app.disable("x-powered-by");
-app.use(express.json());
+// Доверяем заголовку X-Forwarded-For от Nginx — нужно для корректного
+// определения IP клиента (защита от брутфорса по IP).
+app.set("trust proxy", 1);
+
+// Базовые защитные HTTP-заголовки (аналог helmet, без зависимости).
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY"); // нельзя встроить сайт в чужой iframe
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  next();
+});
+
+// Ограничиваем размер JSON-тела (защита от перегрузки большими payload).
+app.use(express.json({ limit: "1mb" }));
 
 // Проверка работоспособности (используется скриптами деплоя и мониторингом)
 app.get("/health", async (_req, res) => {

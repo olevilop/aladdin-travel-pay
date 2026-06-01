@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { query } from "../db.js";
 import { authMiddleware, requireAdmin } from "../auth.js";
 import { publicUser } from "../util.js";
+import { validatePassword } from "../security.js";
 
 export const usersRouter = Router();
 usersRouter.use(authMiddleware, requireAdmin);
@@ -27,6 +28,10 @@ usersRouter.post("/", async (req, res, next) => {
     }
     if (!["admin", "manager"].includes(role)) {
       return res.status(400).json({ message: "Неверная роль" });
+    }
+    const pwErr = validatePassword(temp_password);
+    if (pwErr) {
+      return res.status(400).json({ message: pwErr });
     }
     const exists = await query("SELECT 1 FROM users WHERE lower(email) = lower($1)", [email]);
     if (exists.rows[0]) {

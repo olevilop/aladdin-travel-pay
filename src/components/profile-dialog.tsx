@@ -127,6 +127,9 @@ export function ProfileDialog({
               onChange={(e) => setNewPassword(e.target.value)}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Минимум 8 символов, хотя бы одна буква и одна цифра.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="cp">Повторите новый пароль</Label>

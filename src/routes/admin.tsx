@@ -220,6 +220,9 @@ function NewUserDialog({ onCreated }: { onCreated: () => void }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Минимум 8 символов, хотя бы одна буква и одна цифра.
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Роль</Label>

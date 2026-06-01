@@ -4,6 +4,12 @@ import bcrypt from "bcryptjs";
 import { query } from "../db.js";
 import { signToken, authMiddleware } from "../auth.js";
 import { publicUser } from "../util.js";
+import {
+  checkLoginAllowed,
+  registerFailedLogin,
+  registerSuccessfulLogin,
+  validatePassword,
+} from "../security.js";
 
 export const authRouter = Router();
 
@@ -13,15 +19,26 @@ authRouter.post("/login", async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({ message: "Укажите email и пароль" });
     }
+    // Защита от подбора пароля: если слишком много неудач — временно блокируем.
+    const gate = checkLoginAllowed(req, email);
+    if (gate.blocked) {
+      const min = Math.ceil(gate.retryAfterSec / 60);
+      return res
+        .status(429)
+        .json({ message: `Слишком много попыток входа. Попробуйте через ${min} мин.` });
+    }
     const { rows } = await query("SELECT * FROM users WHERE lower(email) = lower($1)", [email]);
     const user = rows[0];
     if (!user || !user.is_active) {
+      registerFailedLogin(req, email);
       return res.status(401).json({ message: "Неверный email или пароль" });
     }
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
+      registerFailedLogin(req, email);
       return res.status(401).json({ message: "Неверный email или пароль" });
     }
+    registerSuccessfulLogin(req, email);
     res.json({ token: signToken(user.id), user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -44,8 +61,9 @@ authRouter.post("/change-password", authMiddleware, async (req, res, next) => {
     if (!current_password || !new_password) {
       return res.status(400).json({ message: "Укажите текущий и новый пароль" });
     }
-    if (String(new_password).length < 6) {
-      return res.status(400).json({ message: "Новый пароль должен быть не короче 6 символов" });
+    const pwErr = validatePassword(new_password);
+    if (pwErr) {
+      return res.status(400).json({ message: pwErr });
     }
     const ok = await bcrypt.compare(current_password, req.user.password_hash);
     if (!ok) {
