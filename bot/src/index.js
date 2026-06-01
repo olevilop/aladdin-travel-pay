@@ -82,23 +82,55 @@ async function downloadTelegramFile(fileId) {
   return Buffer.from(await res.arrayBuffer());
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 // ── Отправка в наш backend ───────────────────────────────────────────────────
 async function uploadToBackend({ number, companyType, isPaid, fileName, fileBuf, who }) {
-  const form = new FormData();
-  form.append("number", number);
-  form.append("company_type", companyType);
-  form.append("is_paid", isPaid ? "true" : "false");
-  form.append("uploaded_by_name", who);
-  form.append("file", new Blob([fileBuf]), fileName);
+  // Сетевые сбои (например, backend перезапускается во время деплоя) дают
+  // "fetch failed". Повторяем попытку несколько раз с паузой — для менеджера
+  // загрузка проходит прозрачно, без ручного повтора.
+  const MAX_ATTEMPTS = 4;
+  let lastErr;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const form = new FormData();
+      form.append("number", number);
+      form.append("company_type", companyType);
+      form.append("is_paid", isPaid ? "true" : "false");
+      form.append("uploaded_by_name", who);
+      form.append("file", new Blob([fileBuf]), fileName);
 
-  const res = await fetch(`${BACKEND_URL}/bot/upload`, {
-    method: "POST",
-    headers: { "X-Bot-Token": BOT_API_TOKEN },
-    body: form,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || `Ошибка backend (${res.status})`);
-  return data;
+      const res = await fetch(`${BACKEND_URL}/bot/upload`, {
+        method: "POST",
+        headers: { "X-Bot-Token": BOT_API_TOKEN },
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      // 5xx — сервер временно нездоров, есть смысл повторить. 4xx — ошибка
+      // данных (не тот раздел и т.п.), повторять бесполезно.
+      if (!res.ok) {
+        if (res.status >= 500 && attempt < MAX_ATTEMPTS) {
+          lastErr = new Error(data.message || `Ошибка backend (${res.status})`);
+          await sleep(1500 * attempt);
+          continue;
+        }
+        throw new Error(data.message || `Ошибка backend (${res.status})`);
+      }
+      return data;
+    } catch (e) {
+      // Сетевой сбой (fetch failed / ECONNREFUSED) — пробуем снова.
+      const networkish =
+        e instanceof TypeError ||
+        /fetch failed|ECONNREFUSED|socket|network/i.test(e.message || "");
+      if (networkish && attempt < MAX_ATTEMPTS) {
+        lastErr = e;
+        await sleep(1500 * attempt);
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr || new Error("Не удалось загрузить после нескольких попыток");
 }
 
 const HELP =
