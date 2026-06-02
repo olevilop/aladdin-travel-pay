@@ -11,6 +11,7 @@ import {
   Trash2,
   Plus,
   FileText,
+  Download,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -189,7 +190,27 @@ function FieldCell({
     }
   }
 
+  async function download() {
+    setBusy(true);
+    try {
+      const blob = await api.downloadContractFieldFile(field.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = field.file!.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Не удалось скачать файл");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Удалять можно: пользовательские поля (slot === null), а также стандартные
+  // «Приложения» и «Лицензия». Шаблон / 1 Подпись / 2-е Подписи удалять нельзя.
   const isCustom = field.slot === null;
+  const isDeletable = isCustom || field.slot === "annexes" || field.slot === "license";
 
   return (
     <div className="flex flex-col rounded-md border bg-card p-2">
@@ -197,8 +218,8 @@ function FieldCell({
         <span className="truncate text-xs font-medium text-foreground" title={field.label}>
           {field.label}
         </span>
-        {/* Удалить пользовательское поле целиком — только админ */}
-        {isAdmin && isCustom && (
+        {/* Удалить поле целиком — только админ (свои поля + Приложения/Лицензия) */}
+        {isAdmin && isDeletable && (
           <ConfirmDialog
             title="Удалить поле?"
             description={`Поле «${field.label}» и его файл будут удалены.`}
@@ -230,7 +251,17 @@ function FieldCell({
           <span className="text-[10px] text-muted-foreground">
             {formatBytes(field.file.size)}
           </span>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-[11px]"
+              onClick={download}
+              disabled={busy}
+              title="Скачать файл"
+            >
+              <Download className="mr-1 h-3 w-3" /> Скачать
+            </Button>
             <Button
               size="sm"
               variant="ghost"

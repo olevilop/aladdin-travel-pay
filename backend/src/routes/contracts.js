@@ -57,6 +57,24 @@ contractsRouter.post("/categories", async (req, res, next) => {
   }
 });
 
+// PATCH /contracts/categories/:id  { name } — переименовать категорию
+contractsRouter.patch("/categories/:id", async (req, res, next) => {
+  try {
+    const { name } = req.body || {};
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Укажите название категории" });
+    }
+    const { rows } = await query(
+      "UPDATE contract_categories SET name = $1 WHERE id::text = $2 RETURNING *",
+      [name.trim(), req.params.id],
+    );
+    if (!rows[0]) return res.status(404).json({ message: "Категория не найдена" });
+    res.json(mapContractCategory(rows[0]));
+  } catch (err) {
+    next(err);
+  }
+});
+
 // DELETE /contracts/categories/:id — только админ (каскадом удалит партнёров/договоры/поля)
 contractsRouter.delete("/categories/:id", requireAdmin, async (req, res, next) => {
   try {

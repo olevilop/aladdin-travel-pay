@@ -10,7 +10,7 @@ import { PartnerList } from "@/components/contracts/partner-list";
 import { useAuth } from "@/lib/auth";
 import * as api from "@/lib/api";
 import type { CompanyType, ContractCategory } from "@/types";
-import { Folder, Loader2, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Folder, Loader2, Plus, Trash2, ChevronLeft, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/contracts")({
@@ -126,44 +126,131 @@ function ContractsInner() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((c) => (
-              <Card
+              <CategoryCard
                 key={c.id}
-                className="cursor-pointer transition-transform hover:-translate-y-0.5"
-                onClick={() => setActive(c)}
-              >
-                <CardContent className="flex items-center justify-between p-5">
-                  <div className="flex items-center gap-3">
-                    <Folder className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-foreground">{c.name}</span>
-                  </div>
-                  {isAdmin && (
-                    <ConfirmDialog
-                      title="Удалить категорию?"
-                      description={`Категория «${c.name}» со всеми партнёрами, договорами и файлами будет удалена безвозвратно.`}
-                      onConfirm={async () => {
-                        await api.deleteContractCategory(c.id);
-                        toast.success("Категория удалена");
-                        loadCategories();
-                      }}
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => e.stopPropagation()}
-                          title="Удалить категорию"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      }
-                    />
-                  )}
-                </CardContent>
-              </Card>
+                category={c}
+                isAdmin={!!isAdmin}
+                onOpen={() => setActive(c)}
+                onChanged={loadCategories}
+              />
             ))}
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function CategoryCard({
+  category,
+  isAdmin,
+  onOpen,
+  onChanged,
+}: {
+  category: ContractCategory;
+  isAdmin: boolean;
+  onOpen: () => void;
+  onChanged: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(category.name);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!name.trim()) {
+      toast.error("Введите название");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.renameContractCategory(category.id, name.trim());
+      toast.success("Название изменено");
+      setEditing(false);
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message || "Не удалось переименовать");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <Card>
+        <CardContent className="flex items-center gap-2 p-5">
+          <Input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              if (e.key === "Escape") setEditing(false);
+            }}
+            className="h-8"
+          />
+          <Button size="icon" className="h-8 w-8 shrink-0" onClick={save} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 shrink-0"
+            onClick={() => {
+              setName(category.name);
+              setEditing(false);
+            }}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="cursor-pointer transition-transform hover:-translate-y-0.5" onClick={onOpen}>
+      <CardContent className="flex items-center justify-between p-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <Folder className="h-5 w-5 shrink-0 text-primary" />
+          <span className="truncate font-semibold text-foreground">{category.name}</span>
+        </div>
+        {isAdmin && (
+          <div className="flex shrink-0 items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setName(category.name);
+                setEditing(true);
+              }}
+              title="Переименовать"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <ConfirmDialog
+              title="Удалить категорию?"
+              description={`Категория «${category.name}» со всеми партнёрами, договорами и файлами будет удалена безвозвратно.`}
+              onConfirm={async () => {
+                await api.deleteContractCategory(category.id);
+                toast.success("Категория удалена");
+                onChanged();
+              }}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Удалить категорию"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              }
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

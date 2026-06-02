@@ -370,6 +370,16 @@ export async function createContractCategory(
   });
 }
 
+export async function renameContractCategory(
+  id: string,
+  name: string,
+): Promise<ContractCategory> {
+  return request<ContractCategory>(`/contracts/categories/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
 export async function deleteContractCategory(id: string): Promise<void> {
   await request(`/contracts/categories/${id}`, { method: "DELETE" });
 }
