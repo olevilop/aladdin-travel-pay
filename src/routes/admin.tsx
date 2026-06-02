@@ -87,6 +87,7 @@ function Panel() {
                 <TableHead>Имя</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Договора</TableHead>
                 <TableHead>Дата</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -110,6 +111,15 @@ function Panel() {
                       <Badge className="border-transparent bg-red-100 text-red-700">
                         Заблокирован
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {u.role === "admin" || u.can_access_contracts ? (
+                      <Badge className="border-transparent bg-blue-100 text-blue-700">
+                        Есть доступ
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -140,10 +150,20 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
     toast.success(user.is_active ? "Пользователь заблокирован" : "Пользователь разблокирован");
     onChanged();
   }
+  async function toggleContracts() {
+    const updated = await api.toggleUserContracts(user.id);
+    toast.success(
+      updated.can_access_contracts
+        ? "Доступ к Договорам выдан"
+        : "Доступ к Договорам убран",
+    );
+    onChanged();
+  }
   function resetPassword() {
     const temp = Math.random().toString(36).slice(-8);
     toast.success(`Новый временный пароль: ${temp}`);
   }
+  const isAdmin = user.role === "admin";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -156,6 +176,13 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
         <DropdownMenuItem onClick={toggleActive}>
           {user.is_active ? "Заблокировать" : "Разблокировать"}
         </DropdownMenuItem>
+        {!isAdmin && (
+          <DropdownMenuItem onClick={toggleContracts}>
+            {user.can_access_contracts
+              ? "Убрать доступ к Договорам"
+              : "Выдать доступ к Договорам"}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={resetPassword}>Сбросить пароль</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

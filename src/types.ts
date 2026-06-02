@@ -8,6 +8,7 @@ export interface User {
   full_name: string;
   role: Role;
   is_active: boolean;
+  can_access_contracts?: boolean;
   created_at: string;
 }
 

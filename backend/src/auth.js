@@ -47,6 +47,15 @@ export function requireAdmin(req, res, next) {
   next();
 }
 
+// Доступ к разделу «Договора»: админ всегда, остальным — по флагу can_access_contracts.
+export function requireContracts(req, res, next) {
+  const u = req.user;
+  if (u?.role === "admin" || u?.can_access_contracts === true) {
+    return next();
+  }
+  return res.status(403).json({ message: "Нет доступа к разделу «Договора»" });
+}
+
 // Аутентификация для сервисного клиента (Telegram-бот / агент).
 // Бот шлёт заголовок X-Bot-Token со значением BOT_API_TOKEN из .env.
 export function botAuth(req, res, next) {

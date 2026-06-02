@@ -79,3 +79,17 @@ usersRouter.post("/:id/toggle-active", async (req, res, next) => {
     next(err);
   }
 });
+
+// POST /users/:id/toggle-contracts — выдать/забрать доступ к разделу «Договора»
+usersRouter.post("/:id/toggle-contracts", async (req, res, next) => {
+  try {
+    const { rows } = await query(
+      "UPDATE users SET can_access_contracts = NOT can_access_contracts WHERE id::text = $1 RETURNING *",
+      [req.params.id],
+    );
+    if (!rows[0]) return res.status(404).json({ message: "Пользователь не найден" });
+    res.json(publicUser(rows[0]));
+  } catch (err) {
+    next(err);
+  }
+});

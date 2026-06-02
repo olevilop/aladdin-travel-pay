@@ -23,6 +23,8 @@ export function publicUser(row) {
     full_name: row.full_name,
     role: row.role,
     is_active: row.is_active,
+    // Админ всегда имеет доступ к договорам; остальным выдаётся флагом.
+    can_access_contracts: row.role === "admin" || row.can_access_contracts === true,
     created_at: iso(row.created_at),
   };
 }

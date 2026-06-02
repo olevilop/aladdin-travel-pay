@@ -334,4 +334,15 @@ export async function toggleUserActive(userId: string): Promise<User> {
   return request<User>(`/users/${userId}/toggle-active`, { method: "POST" });
 }
 
+export async function toggleUserContracts(userId: string): Promise<User> {
+  if (!API_URL) {
+    await delay();
+    const u = db.users.find((x) => x.id === userId);
+    if (!u) throw new Error("Пользователь не найден");
+    u.can_access_contracts = !u.can_access_contracts;
+    return u;
+  }
+  return request<User>(`/users/${userId}/toggle-contracts`, { method: "POST" });
+}
+
 export const apiInternals = { getToken, setToken, API_URL };
