@@ -345,4 +345,104 @@ export async function toggleUserContracts(userId: string): Promise<User> {
   return request<User>(`/users/${userId}/toggle-contracts`, { method: "POST" });
 }
 
+// ─── CONTRACTS (Договора) ───────────────────────────────────────────────────
+// Раздел работает только с реальным backend (моков нет).
+import type {
+  ContractCategory,
+  ContractPartner,
+  ContractDocument,
+  ContractField,
+} from "@/types";
+
+export async function listContractCategories(
+  companyType: CompanyType,
+): Promise<ContractCategory[]> {
+  return request<ContractCategory[]>(`/contracts/categories?company_type=${companyType}`);
+}
+
+export async function createContractCategory(
+  companyType: CompanyType,
+  name: string,
+): Promise<ContractCategory> {
+  return request<ContractCategory>("/contracts/categories", {
+    method: "POST",
+    body: JSON.stringify({ company_type: companyType, name }),
+  });
+}
+
+export async function deleteContractCategory(id: string): Promise<void> {
+  await request(`/contracts/categories/${id}`, { method: "DELETE" });
+}
+
+export async function listContractPartners(categoryId: string): Promise<ContractPartner[]> {
+  return request<ContractPartner[]>(`/contracts/categories/${categoryId}/partners`);
+}
+
+export async function createContractPartner(
+  categoryId: string,
+  name: string,
+): Promise<ContractPartner> {
+  return request<ContractPartner>(`/contracts/categories/${categoryId}/partners`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function deleteContractPartner(id: string): Promise<void> {
+  await request(`/contracts/partners/${id}`, { method: "DELETE" });
+}
+
+export async function createContractDocument(
+  partnerId: string,
+  title = "",
+): Promise<ContractDocument> {
+  return request<ContractDocument>(`/contracts/partners/${partnerId}/documents`, {
+    method: "POST",
+    body: JSON.stringify({ title }),
+  });
+}
+
+export async function deleteContractDocument(id: string): Promise<void> {
+  await request(`/contracts/documents/${id}`, { method: "DELETE" });
+}
+
+export async function addContractField(
+  documentId: string,
+  label: string,
+): Promise<ContractField> {
+  return request<ContractField>(`/contracts/documents/${documentId}/fields`, {
+    method: "POST",
+    body: JSON.stringify({ label }),
+  });
+}
+
+export async function deleteContractField(id: string): Promise<void> {
+  await request(`/contracts/fields/${id}`, { method: "DELETE" });
+}
+
+export async function uploadContractFieldFile(
+  fieldId: string,
+  file: File,
+): Promise<ContractField> {
+  const fd = new FormData();
+  fd.append("file", file);
+  return request<ContractField>(`/contracts/fields/${fieldId}/file`, {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function deleteContractFieldFile(fieldId: string): Promise<ContractField> {
+  return request<ContractField>(`/contracts/fields/${fieldId}/file`, { method: "DELETE" });
+}
+
+export async function downloadContractFieldFile(fieldId: string): Promise<Blob> {
+  const token = getToken();
+  const res = await fetch(`${API_URL}/contracts/fields/${fieldId}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Не удалось получить файл");
+  return res.blob();
+}
+
 export const apiInternals = { getToken, setToken, API_URL };

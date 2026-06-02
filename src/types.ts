@@ -38,6 +38,48 @@ export interface Application {
 
 export type PaymentStatus = "empty" | "unpaid" | "partial" | "paid";
 
+// ── Договора ─────────────────────────────────────────────────────────────────
+export interface ContractCategory {
+  id: string;
+  company_type: CompanyType;
+  name: string;
+  created_at: string;
+}
+
+export interface ContractFieldFile {
+  name: string;
+  size: number;
+  mime: string;
+  uploaded_by_name: string;
+  uploaded_at: string;
+}
+
+export interface ContractField {
+  id: string;
+  document_id: string;
+  slot: string | null; // null = пользовательское поле
+  label: string;
+  position: number;
+  file: ContractFieldFile | null;
+}
+
+export interface ContractDocument {
+  id: string;
+  partner_id: string;
+  title: string;
+  position: number;
+  created_at: string;
+  fields: ContractField[];
+}
+
+export interface ContractPartner {
+  id: string;
+  category_id: string;
+  name: string;
+  created_at: string;
+  documents: ContractDocument[];
+}
+
 export interface LoginResponse {
   token: string;
   user: User;

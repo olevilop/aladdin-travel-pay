@@ -64,3 +64,64 @@ export async function safeUnlink(filePath) {
     // файла уже нет — игнорируем
   }
 }
+
+// ── Договора ─────────────────────────────────────────────────────────────────
+
+// Пять стандартных полей, создаваемых для каждого нового договора (в этом порядке).
+export const DEFAULT_CONTRACT_SLOTS = [
+  { slot: "template", label: "Шаблон" },
+  { slot: "sign1", label: "1 Подпись" },
+  { slot: "sign2", label: "2-е Подписи" },
+  { slot: "annexes", label: "Приложения" },
+  { slot: "license", label: "Лицензия" },
+];
+
+export function mapContractField(row) {
+  return {
+    id: row.id,
+    document_id: row.document_id,
+    slot: row.slot,
+    label: row.label,
+    position: row.position,
+    // данные файла (null, если ещё не загружен)
+    file: row.file_name
+      ? {
+          name: row.file_name,
+          size: row.file_size,
+          mime: row.file_mime,
+          uploaded_by_name: row.uploaded_by_name,
+          uploaded_at: iso(row.uploaded_at),
+        }
+      : null,
+  };
+}
+
+export function mapContractDocument(row, fields = []) {
+  return {
+    id: row.id,
+    partner_id: row.partner_id,
+    title: row.title || "",
+    position: row.position,
+    created_at: iso(row.created_at),
+    fields: fields.map(mapContractField),
+  };
+}
+
+export function mapContractPartner(row, documents = []) {
+  return {
+    id: row.id,
+    category_id: row.category_id,
+    name: row.name,
+    created_at: iso(row.created_at),
+    documents,
+  };
+}
+
+export function mapContractCategory(row) {
+  return {
+    id: row.id,
+    company_type: row.company_type,
+    name: row.name,
+    created_at: iso(row.created_at),
+  };
+}
