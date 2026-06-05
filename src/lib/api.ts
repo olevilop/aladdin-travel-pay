@@ -23,18 +23,21 @@ import { formatDate } from "@/lib/format";
  */
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || "";
 
-const TOKEN_KEY = "att_token";
+// Уникальный для ЭТОГО сайта ключ (чтобы не путаться с другими сайтами на сервере).
+const TOKEN_KEY = "docstoalladin_token";
 const MOCK_TOKEN = "mock-token";
 
+// sessionStorage (а не localStorage) — токен живёт только до закрытия вкладки/браузера.
+// Закрыл браузер → вход слетел → при следующем заходе нужно ввести пароль заново.
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY);
 }
 
 function setToken(token: string | null) {
   if (typeof window === "undefined") return;
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  if (token) sessionStorage.setItem(TOKEN_KEY, token);
+  else sessionStorage.removeItem(TOKEN_KEY);
 }
 
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));

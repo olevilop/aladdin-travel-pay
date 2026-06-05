@@ -29,7 +29,7 @@ export async function bootstrapAuth() {
   if (bootstrapped) return;
   bootstrapped = true;
   if (typeof window === "undefined") return;
-  const token = localStorage.getItem("att_token");
+  const token = api.apiInternals.getToken();
   if (!token) {
     setState({ user: null, loading: false });
     return;
@@ -38,7 +38,7 @@ export async function bootstrapAuth() {
     const u = await api.getCurrentUser();
     setState({ user: u, loading: false });
   } catch {
-    localStorage.removeItem("att_token");
+    api.apiInternals.setToken(null);
     setState({ user: null, loading: false });
   }
 }
