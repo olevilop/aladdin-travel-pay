@@ -86,6 +86,30 @@ botRouter.post("/upload", upload.single("file"), async (req, res, next) => {
 
     const { app, created } = await findOrCreateApplication(number, title);
     const paid = parseBool(is_paid, false);
+    const fileName = decodeOriginalName(req.file.originalname);
+
+    // Защита от дублей: если файл с таким же именем уже есть в этой заявке
+    // и в этом же разделе (РФ/зарубеж) — повторно не добавляем.
+    // Сравнение без учёта регистра. Существующая заявка (created=false) — иначе
+    // дублей быть не может (заявка только что создана пустой).
+    if (!created) {
+      const dup = await query(
+        "SELECT id FROM files WHERE application_id = $1 AND company_type = $2 AND lower(name) = lower($3) LIMIT 1",
+        [app.id, company_type, fileName],
+      );
+      if (dup.rows[0]) {
+        await safeUnlink(req.file.path); // загруженную копию удаляем с диска
+        return res.status(200).json({
+          ok: true,
+          duplicate: true,
+          application_created: false,
+          application: { id: app.id, number: app.number, title: app.title },
+          message: `Файл «${fileName}» уже есть в заявке ${app.number} (раздел ${
+            company_type === "ru" ? "Компания РФ" : "Зарубежная компания"
+          }) — повторно не добавлен.`,
+        });
+      }
+    }
 
     const { rows } = await query(
       `INSERT INTO files
@@ -95,7 +119,7 @@ botRouter.post("/upload", upload.single("file"), async (req, res, next) => {
       [
         app.id,
         company_type,
-        decodeOriginalName(req.file.originalname),
+        fileName,
         req.file.size,
         req.file.mimetype || "application/octet-stream",
         req.file.path,
@@ -106,6 +130,7 @@ botRouter.post("/upload", upload.single("file"), async (req, res, next) => {
 
     res.status(201).json({
       ok: true,
+      duplicate: false,
       application_created: created,
       application: { id: app.id, number: app.number, title: app.title },
       file: mapFile(rows[0]),

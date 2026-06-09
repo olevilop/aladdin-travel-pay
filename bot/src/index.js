@@ -228,6 +228,14 @@ async function handleUpdate(update) {
       fileBuf: buf,
       who,
     });
+    // Дубль: файл с таким именем уже есть в этой заявке и разделе — не добавлен повторно.
+    if (result.duplicate) {
+      await sendMessage(
+        chatId,
+        `ℹ️ ${result.message || `Файл «${file.name}» уже есть в заявке ${number} — повторно не добавлен.`}`,
+      );
+      return;
+    }
     const section = companyType === "ru" ? "Компания РФ" : "Зарубежная компания";
     const createdNote = result.application_created ? " (заявка создана)" : "";
     const paidNote = isPaid ? ", отмечено «оплачено»" : "";
