@@ -93,3 +93,28 @@ usersRouter.post("/:id/toggle-contracts", async (req, res, next) => {
     next(err);
   }
 });
+
+// DELETE /users/:id — удалить пользователя совсем
+usersRouter.delete("/:id", async (req, res, next) => {
+  try {
+    // Нельзя удалить самого себя (чтобы админ не остался без доступа случайно).
+    if (req.user.id === req.params.id) {
+      return res.status(400).json({ message: "Нельзя удалить самого себя" });
+    }
+    // Нельзя удалить последнего активного админа.
+    const target = await query("SELECT role FROM users WHERE id::text = $1", [req.params.id]);
+    if (!target.rows[0]) return res.status(404).json({ message: "Пользователь не найден" });
+    if (target.rows[0].role === "admin") {
+      const admins = await query(
+        "SELECT COUNT(*)::int AS n FROM users WHERE role = 'admin' AND is_active = TRUE",
+      );
+      if (admins.rows[0].n <= 1) {
+        return res.status(400).json({ message: "Нельзя удалить последнего администратора" });
+      }
+    }
+    await query("DELETE FROM users WHERE id::text = $1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});

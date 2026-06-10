@@ -18,15 +18,24 @@ export function ConfirmDialog({
   description,
   confirmLabel = "Удалить",
   onConfirm,
+  open: openProp,
+  onOpenChange,
 }: {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   title: string;
   description?: string;
   confirmLabel?: string;
   onConfirm: () => void | Promise<void>;
+  // Управляемый режим (без trigger): открытием управляет родитель.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : openState;
+  const setOpen = (v: boolean) => (controlled ? onOpenChange?.(v) : setOpenState(v));
 
   async function handle() {
     setLoading(true);
@@ -40,7 +49,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+      {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

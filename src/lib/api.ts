@@ -348,6 +348,16 @@ export async function toggleUserContracts(userId: string): Promise<User> {
   return request<User>(`/users/${userId}/toggle-contracts`, { method: "POST" });
 }
 
+export async function deleteUser(userId: string): Promise<void> {
+  if (!API_URL) {
+    await delay();
+    const idx = db.users.findIndex((x) => x.id === userId);
+    if (idx >= 0) db.users.splice(idx, 1);
+    return;
+  }
+  await request(`/users/${userId}`, { method: "DELETE" });
+}
+
 // ─── CONTRACTS (Договора) ───────────────────────────────────────────────────
 // Раздел работает только с реальным backend (моков нет).
 import type {

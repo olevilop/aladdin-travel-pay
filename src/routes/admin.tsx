@@ -40,6 +40,8 @@ import { Loader2, MoreHorizontal, Plus } from "lucide-react";
 import * as api from "@/lib/api";
 import type { Role, User } from "@/types";
 import { formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -139,6 +141,9 @@ function Panel() {
 }
 
 function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void }) {
+  const { user: me } = useAuth();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   async function changeRole() {
     const next: Role = user.role === "admin" ? "manager" : "admin";
     await api.updateUserRole(user.id, next);
@@ -159,33 +164,56 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
     );
     onChanged();
   }
-  function resetPassword() {
-    const temp = Math.random().toString(36).slice(-8);
-    toast.success(`Новый временный пароль: ${temp}`);
+  async function onDelete() {
+    try {
+      await api.deleteUser(user.id);
+      toast.success("Пользователь удалён");
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message || "Не удалось удалить");
+    }
   }
   const isAdmin = user.role === "admin";
+  const isSelf = me?.id === user.id;
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={changeRole}>Сменить роль</DropdownMenuItem>
-        <DropdownMenuItem onClick={toggleActive}>
-          {user.is_active ? "Заблокировать" : "Разблокировать"}
-        </DropdownMenuItem>
-        {!isAdmin && (
-          <DropdownMenuItem onClick={toggleContracts}>
-            {user.can_access_contracts
-              ? "Убрать доступ к Договорам"
-              : "Выдать доступ к Договорам"}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={changeRole}>Сменить роль</DropdownMenuItem>
+          <DropdownMenuItem onClick={toggleActive}>
+            {user.is_active ? "Заблокировать" : "Разблокировать"}
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={resetPassword}>Сбросить пароль</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {!isAdmin && (
+            <DropdownMenuItem onClick={toggleContracts}>
+              {user.can_access_contracts
+                ? "Убрать доступ к Договорам"
+                : "Выдать доступ к Договорам"}
+            </DropdownMenuItem>
+          )}
+          {!isSelf && (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Удалить пользователя
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Удалить пользователя?"
+        description={`Пользователь «${user.full_name}» (${user.email}) будет удалён. Его заявки и файлы останутся. Действие необратимо.`}
+        onConfirm={onDelete}
+      />
+    </>
   );
 }
 
