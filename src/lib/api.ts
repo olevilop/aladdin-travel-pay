@@ -358,6 +358,17 @@ export async function deleteUser(userId: string): Promise<void> {
   await request(`/users/${userId}`, { method: "DELETE" });
 }
 
+export async function resetUserPassword(userId: string, newPassword: string): Promise<void> {
+  if (!API_URL) {
+    await delay();
+    return;
+  }
+  await request(`/users/${userId}/reset-password`, {
+    method: "POST",
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+}
+
 // ─── CONTRACTS (Договора) ───────────────────────────────────────────────────
 // Раздел работает только с реальным backend (моков нет).
 import type {

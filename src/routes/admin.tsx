@@ -143,6 +143,9 @@ function Panel() {
 function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void }) {
   const { user: me } = useAuth();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [newPass, setNewPass] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   async function changeRole() {
     const next: Role = user.role === "admin" ? "manager" : "admin";
@@ -173,6 +176,19 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
       toast.error(e.message || "Не удалось удалить");
     }
   }
+  async function onResetPassword() {
+    setResetting(true);
+    try {
+      await api.resetUserPassword(user.id, newPass);
+      toast.success("Пароль изменён. Передайте его пользователю.");
+      setResetOpen(false);
+      setNewPass("");
+    } catch (e: any) {
+      toast.error(e.message || "Не удалось сменить пароль");
+    } finally {
+      setResetting(false);
+    }
+  }
   const isAdmin = user.role === "admin";
   const isSelf = me?.id === user.id;
   return (
@@ -195,6 +211,9 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
                 : "Выдать доступ к Договорам"}
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem onClick={() => setResetOpen(true)}>
+            Сбросить пароль
+          </DropdownMenuItem>
           {!isSelf && (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
@@ -205,6 +224,36 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Новый пароль для {user.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="reset-pw">Новый пароль</Label>
+            <PasswordInput
+              id="reset-pw"
+              value={newPass}
+              onChange={(e) => setNewPass(e.target.value)}
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              Минимум 8 символов, хотя бы одна буква и одна цифра. Передайте этот пароль
+              пользователю — он сможет войти и сменить его в Профиле.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={onResetPassword} disabled={resetting}>
+              {resetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Сменить пароль
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={confirmDelete}

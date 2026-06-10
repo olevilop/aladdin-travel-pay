@@ -94,6 +94,26 @@ usersRouter.post("/:id/toggle-contracts", async (req, res, next) => {
   }
 });
 
+// POST /users/:id/reset-password  { new_password } — админ задаёт пользователю новый пароль
+usersRouter.post("/:id/reset-password", async (req, res, next) => {
+  try {
+    const { new_password } = req.body || {};
+    const pwErr = validatePassword(new_password);
+    if (pwErr) {
+      return res.status(400).json({ message: pwErr });
+    }
+    const hash = await bcrypt.hash(new_password, 10);
+    const { rows } = await query(
+      "UPDATE users SET password_hash = $1 WHERE id::text = $2 RETURNING *",
+      [hash, req.params.id],
+    );
+    if (!rows[0]) return res.status(404).json({ message: "Пользователь не найден" });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // DELETE /users/:id — удалить пользователя совсем
 usersRouter.delete("/:id", async (req, res, next) => {
   try {
