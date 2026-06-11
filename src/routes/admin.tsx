@@ -24,6 +24,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -47,6 +49,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
+
+// Человекочитаемое название роли.
+function roleLabel(role: Role): string {
+  if (role === "admin") return "Администратор";
+  if (role === "accountant") return "Бухгалтер";
+  return "Менеджер";
+}
 
 function AdminPage() {
   return (
@@ -100,9 +109,7 @@ function Panel() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.full_name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {u.role === "admin" ? "Администратор" : "Менеджер"}
-                    </Badge>
+                    <Badge variant="outline">{roleLabel(u.role)}</Badge>
                   </TableCell>
                   <TableCell>
                     {u.is_active ? (
@@ -147,10 +154,10 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
   const [newPass, setNewPass] = useState("");
   const [resetting, setResetting] = useState(false);
 
-  async function changeRole() {
-    const next: Role = user.role === "admin" ? "manager" : "admin";
+  async function setRoleTo(next: Role) {
+    if (next === user.role) return;
     await api.updateUserRole(user.id, next);
-    toast.success(`Роль изменена: ${next === "admin" ? "Администратор" : "Менеджер"}`);
+    toast.success(`Роль изменена: ${roleLabel(next)}`);
     onChanged();
   }
   async function toggleActive() {
@@ -200,7 +207,17 @@ function UserRowActions({ user, onChanged }: { user: User; onChanged: () => void
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={changeRole}>Сменить роль</DropdownMenuItem>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">
+            Роль: {roleLabel(user.role)}
+          </DropdownMenuLabel>
+          {(["admin", "accountant", "manager"] as Role[])
+            .filter((r) => r !== user.role)
+            .map((r) => (
+              <DropdownMenuItem key={r} onClick={() => setRoleTo(r)}>
+                Сделать: {roleLabel(r)}
+              </DropdownMenuItem>
+            ))}
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={toggleActive}>
             {user.is_active ? "Заблокировать" : "Разблокировать"}
           </DropdownMenuItem>
@@ -336,6 +353,7 @@ function NewUserDialog({ onCreated }: { onCreated: () => void }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="manager">Менеджер</SelectItem>
+                <SelectItem value="accountant">Бухгалтер</SelectItem>
                 <SelectItem value="admin">Администратор</SelectItem>
               </SelectContent>
             </Select>

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT NOT NULL UNIQUE,
   full_name     TEXT NOT NULL,
-  role          TEXT NOT NULL CHECK (role IN ('admin', 'manager')),
+  role          TEXT NOT NULL CHECK (role IN ('admin', 'manager', 'accountant')),
   is_active     BOOLEAN NOT NULL DEFAULT TRUE,
   password_hash TEXT NOT NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -15,6 +15,11 @@ CREATE TABLE IF NOT EXISTS users (
 -- Доступ к разделу «Договора» выдаёт админ. Колонка добавляется отдельно,
 -- чтобы миграция работала и на уже существующей таблице users.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS can_access_contracts BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Роли: admin / manager / accountant (Бухгалтер). Пересоздаём CHECK, чтобы
+-- разрешить новую роль на уже существующей базе (идемпотентно).
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'accountant'));
 
 CREATE TABLE IF NOT EXISTS applications (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

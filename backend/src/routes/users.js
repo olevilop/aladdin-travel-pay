@@ -26,7 +26,7 @@ usersRouter.post("/", async (req, res, next) => {
     if (!email || !full_name || !temp_password) {
       return res.status(400).json({ message: "Заполните email, имя и временный пароль" });
     }
-    if (!["admin", "manager"].includes(role)) {
+    if (!["admin", "manager", "accountant"].includes(role)) {
       return res.status(400).json({ message: "Неверная роль" });
     }
     const pwErr = validatePassword(temp_password);
@@ -52,7 +52,7 @@ usersRouter.post("/", async (req, res, next) => {
 usersRouter.patch("/:id/role", async (req, res, next) => {
   try {
     const { role } = req.body || {};
-    if (!["admin", "manager"].includes(role)) {
+    if (!["admin", "manager", "accountant"].includes(role)) {
       return res.status(400).json({ message: "Неверная роль" });
     }
     const { rows } = await query(

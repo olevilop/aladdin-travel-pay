@@ -1,4 +1,4 @@
-export type Role = "admin" | "manager";
+export type Role = "admin" | "manager" | "accountant";
 
 export type CompanyType = "ru" | "foreign";
 

@@ -12,12 +12,24 @@ applicationsRouter.use(authMiddleware);
 applicationsRouter.get("/", async (req, res, next) => {
   try {
     const q = (req.query.q || "").toString().trim();
-    const appsRes = q
-      ? await query(
-          "SELECT * FROM applications WHERE number ILIKE $1 OR title ILIKE $1 ORDER BY created_at DESC",
-          [`%${q}%`],
-        )
-      : await query("SELECT * FROM applications ORDER BY created_at DESC");
+    // admin и accountant видят все заявки; manager — только свои + «ничьи»
+    // (созданные через Telegram-бота, у них created_by = NULL).
+    const limited = req.user.role === "manager";
+    const where = [];
+    const params = [];
+    if (q) {
+      params.push(`%${q}%`);
+      where.push(`(number ILIKE $${params.length} OR title ILIKE $${params.length})`);
+    }
+    if (limited) {
+      params.push(req.user.id);
+      where.push(`(created_by = $${params.length} OR created_by IS NULL)`);
+    }
+    const sql =
+      "SELECT * FROM applications" +
+      (where.length ? ` WHERE ${where.join(" AND ")}` : "") +
+      " ORDER BY created_at DESC";
+    const appsRes = await query(sql, params);
 
     const apps = appsRes.rows;
     const ids = apps.map((a) => a.id);
@@ -63,6 +75,10 @@ applicationsRouter.get("/:id", async (req, res, next) => {
     const { rows } = await query("SELECT * FROM applications WHERE id::text = $1", [req.params.id]);
     const app = rows[0];
     if (!app) return res.status(404).json({ message: "Заявка не найдена" });
+    // Менеджер не может открыть чужую заявку по прямой ссылке.
+    if (req.user.role === "manager" && app.created_by && app.created_by !== req.user.id) {
+      return res.status(403).json({ message: "Нет доступа к этой заявке" });
+    }
     const filesRes = await query(
       "SELECT * FROM files WHERE application_id = $1 ORDER BY uploaded_at ASC",
       [app.id],
