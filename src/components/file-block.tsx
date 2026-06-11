@@ -16,6 +16,7 @@ import {
 import { Dropzone, validateFile } from "@/components/dropzone";
 import { formatBytes, formatDate } from "@/lib/format";
 import * as api from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
@@ -98,6 +99,14 @@ export function FileBlock({
   accentColor: string;
   onChanged: () => void;
 }) {
+  const { user } = useAuth();
+  const role = user?.role;
+  // Кто что может (фронт прячет кнопки; настоящая защита — на сервере):
+  // оплачено — админ/бухгалтер; загрузка/удаление файла — админ/менеджер.
+  const canTogglePaid = role === "admin" || role === "accountant";
+  const canUpload = role === "admin" || role === "manager";
+  const canDeleteFile = role === "admin" || role === "manager";
+
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -233,42 +242,51 @@ export function FileBlock({
                   <Download className="h-4 w-4" />
                 )}
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                title={f.is_paid ? "Снять отметку" : "Отметить оплаченным"}
-                onClick={() => onToggle(f)}
-                disabled={busyId === f.id}
-              >
-                {f.is_paid ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground" />
-                )}
-              </Button>
-              <ConfirmDialog
-                title="Удалить файл?"
-                description={`Файл "${f.name}" будет удалён без возможности восстановления.`}
-                onConfirm={() => onDelete(f)}
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Удалить"
-                    disabled={busyId === f.id}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                }
-              />
+              {canTogglePaid ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={f.is_paid ? "Снять отметку" : "Отметить оплаченным"}
+                  onClick={() => onToggle(f)}
+                  disabled={busyId === f.id}
+                >
+                  {f.is_paid ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Circle className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              ) : (
+                // Менеджер видит статус, но не может его менять.
+                f.is_paid && <CheckCircle2 className="h-4 w-4 text-green-600" />
+              )}
+              {canDeleteFile && (
+                <ConfirmDialog
+                  title="Удалить файл?"
+                  description={`Файл "${f.name}" будет удалён без возможности восстановления.`}
+                  onConfirm={() => onDelete(f)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Удалить"
+                      disabled={busyId === f.id}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  }
+                />
+              )}
             </div>
           </div>
         ))}
-        <Dropzone
-          onFiles={handleFiles}
-          uploading={uploading}
-          accentColor={accentColor}
-        />
+        {canUpload && (
+          <Dropzone
+            onFiles={handleFiles}
+            uploading={uploading}
+            accentColor={accentColor}
+          />
+        )}
       </div>
     </div>
   );

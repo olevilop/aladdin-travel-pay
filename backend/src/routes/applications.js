@@ -50,9 +50,12 @@ applicationsRouter.get("/", async (req, res, next) => {
   }
 });
 
-// POST /applications
+// POST /applications — создавать заявки могут админ и менеджер (не бухгалтер)
 applicationsRouter.post("/", async (req, res, next) => {
   try {
+    if (req.user.role === "accountant") {
+      return res.status(403).json({ message: "Бухгалтер не создаёт заявки" });
+    }
     const { number, title, description } = req.body || {};
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Укажите название заявки" });
@@ -106,13 +109,29 @@ applicationsRouter.delete("/:id", requireAdmin, async (req, res, next) => {
 });
 
 // POST /applications/:id/files  (multipart: company_type, file)
+// Загружают админ и менеджер (не бухгалтер); менеджер — только в свои заявки.
 applicationsRouter.post("/:id/files", upload.single("file"), async (req, res, next) => {
   try {
-    const appRes = await query("SELECT id FROM applications WHERE id::text = $1", [req.params.id]);
+    if (req.user.role === "accountant") {
+      if (req.file) await safeUnlink(req.file.path);
+      return res.status(403).json({ message: "Бухгалтер не загружает файлы" });
+    }
+    const appRes = await query("SELECT id, created_by FROM applications WHERE id::text = $1", [
+      req.params.id,
+    ]);
     const app = appRes.rows[0];
     if (!app) {
       if (req.file) await safeUnlink(req.file.path);
       return res.status(404).json({ message: "Заявка не найдена" });
+    }
+    // Менеджер грузит только в свои или «ничьи» заявки.
+    if (
+      req.user.role === "manager" &&
+      app.created_by &&
+      app.created_by !== req.user.id
+    ) {
+      if (req.file) await safeUnlink(req.file.path);
+      return res.status(403).json({ message: "Нет доступа к этой заявке" });
     }
     const companyType = (req.body.company_type || "").toString();
     if (!["ru", "foreign"].includes(companyType)) {

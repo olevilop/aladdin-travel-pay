@@ -14,16 +14,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus } from "lucide-react";
 import * as api from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
 export function NewApplicationDialog() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Бухгалтер не создаёт заявки — кнопку не показываем.
+  if (user?.role === "accountant") return null;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
